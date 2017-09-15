@@ -26,10 +26,14 @@ QVariant TableModel::data(const QModelIndex& index, int role) const
 QVariant TableModel::headerData(int section, Qt::Orientation orientation,
                                 int role) const
 {
-    if(orientation != Qt::Horizontal || role != Qt::DisplayRole)
+    if(role != Qt::DisplayRole)
         return QVariant();
-    else
+    // Имена столбцов
+    else if(orientation == Qt::Horizontal)
         return headerData(section);
+    // Номера строк
+    else
+        return section + 1;
 }
 
 void TableModel::resize(int rowCount, int columnCount)

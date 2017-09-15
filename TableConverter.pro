@@ -16,7 +16,6 @@ INCLUDEPATH += include
 
 HEADERS  += include/MainWindow.h \
     include/SqliteLoader.h \
-    include/TableModel.h \
-    include/QListUtility.h
+    include/TableModel.h
 
 FORMS    += MainWindow.ui
