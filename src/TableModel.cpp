@@ -25,16 +25,24 @@ int TableModel::columnCount(const QModelIndex& parent) const
 
 QVariant TableModel::data(const QModelIndex& index, int role) const
 {
-    if(role != Qt::DisplayRole && role != Qt::EditRole)
-        return QVariant();
-    else
+    if(role == Roles::AsIs)
         return data(index.row(), index.column());
+    else if(role == Qt::DisplayRole || role == Qt::EditRole)
+    {
+        QVariant v = data(index.row(), index.column());
+        if(v.isNull())
+            return "NULL";
+        else
+            return v;
+    }
+    else
+        return QVariant();
 }
 
 QVariant TableModel::headerData(int section, Qt::Orientation orientation,
                                 int role) const
 {
-    if(role != Qt::DisplayRole)
+    if(role != Qt::DisplayRole && role != Roles::AsIs)
         return QVariant();
     // Имена столбцов
     else if(orientation == Qt::Horizontal)

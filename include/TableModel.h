@@ -10,6 +10,16 @@
 class TableModel : public QAbstractTableModel
 {
 public:
+    /*!
+     * \brief Роли для data(const QModelIndex&, int) и
+     *        headerData(int, Qt::Orientation, int)
+     */
+    enum Roles : int
+    {
+        //! Возвращать данные как они есть
+        AsIs = Qt::UserRole
+    };
+
     TableModel(QObject* parent = nullptr);
 
     //! Количество строк

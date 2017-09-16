@@ -159,8 +159,11 @@ void MainWindow::fileSaveAs()
         {
             for(int j=0; j < model->columnCount(); ++j)
             {
-                QVariant data = model->data(model->index(i,j));
-                if(qstrcmp(data.typeName(), "QString") == 0)
+                QVariant data = model->data(model->index(i,j),
+                                            TableModel::Roles::AsIs);
+                if(data.isNull())
+                    csv << "NULL";
+                else if(qstrcmp(data.typeName(), "QString") == 0)
                     csv << escapeText(data.toString());
                 else
                     csv << data.toString();
