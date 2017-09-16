@@ -1,5 +1,8 @@
 #include "TableModel.h"
 
+#include <QColor>
+#include <QFont>
+
 TableModel::TableModel(QObject* parent) :
     QAbstractTableModel(parent) {}
 
@@ -34,6 +37,18 @@ QVariant TableModel::data(const QModelIndex& index, int role) const
             return "NULL";
         else
             return v;
+    }
+    // Выделяем NULL серым цветом
+    else if(role == Qt::ForegroundRole
+            && data(index.row(), index.column()).isNull())
+        return QColor(Qt::gray);
+    // Выделяем NULL курсивом
+    else if(role == Qt::FontRole
+            && data(index.row(), index.column()).isNull())
+    {
+        QFont font;
+        font.setItalic(true);
+        return font;
     }
     else
         return QVariant();
