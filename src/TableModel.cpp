@@ -5,14 +5,22 @@ TableModel::TableModel(QObject* parent) :
 
 int TableModel::rowCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
-    return rowCount();
+    // Согласно документации Qt rowCount должен возвращать 0, если parent
+    // валиден.
+    if(parent.isValid())
+        return 0;
+    else
+        return rowCount();
 }
 
 int TableModel::columnCount(const QModelIndex& parent) const
 {
-    Q_UNUSED(parent);
-    return columnCount();
+    // Согласно документации Qt columnCount должен возвращать 0, если parent
+    // валиден.
+    if(parent.isValid())
+        return 0;
+    else
+        return columnCount();
 }
 
 QVariant TableModel::data(const QModelIndex& index, int role) const

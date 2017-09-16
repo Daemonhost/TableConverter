@@ -61,7 +61,7 @@ bool SqliteLoader::error() const
     return mError;
 }
 
-const QString& SqliteLoader::errorText() const
+const QString& SqliteLoader::errorString() const
 {
     return mErrorText;
 }

@@ -46,7 +46,7 @@ public:
      * \brief Возвращает текст последней ошибки, если она произошла, а иначе -
      *        пустую строку.
      */
-    const QString& errorText() const;
+    const QString& errorString() const;
 
     //! Возвращает базу данных, загруженную функцией load(const QString&).
     const QSqlDatabase& database() const;

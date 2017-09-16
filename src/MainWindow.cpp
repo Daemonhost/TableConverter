@@ -8,8 +8,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QSqlDatabase>
-#include <QSqlError>
-#include <QSqlQuery>
+#include <QTextStream>
 #include "SqliteLoader.h"
 
 MainWindow::MainWindow(QWidget* parent) :
@@ -18,13 +17,16 @@ MainWindow::MainWindow(QWidget* parent) :
 {
     ui->setupUi(this);
 
-    lastFileOpenPath = QDir::homePath();
+    lastFilePath = QDir::homePath();
 
     ui->tableView->setSelectionMode(QTableView::NoSelection);
+    ui->tableView->setFocusPolicy(Qt::NoFocus);
     ui->tableView->setEditTriggers(QTableView::NoEditTriggers);
 
     connect(ui->fileOpenAction, &QAction::triggered,
             this, &MainWindow::fileOpen);
+    connect(ui->fileSaveAsAction, &QAction::triggered,
+            this, &MainWindow::fileSaveAs);
     connect(ui->fileQuitAction, &QAction::triggered,
             this, &MainWindow::fileQuit);
 }
@@ -38,7 +40,7 @@ void MainWindow::fileOpen()
 {
     // TODO Добавить возможность загрузки CSV
     QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"),
-                       lastFileOpenPath,
+                       lastFilePath,
                        tr("SQLite (*.db)"));
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
@@ -47,10 +49,10 @@ void MainWindow::fileOpen()
 
     QFileInfo fileInfo(fileName);
 
-    lastFileOpenPath = fileInfo.absolutePath();
+    lastFilePath = fileInfo.absolutePath();
 
     // Расширение файла
-    QString extension = fileInfo.suffix();
+    QString extension = fileInfo.suffix().toLower();
 
     if(extension == "db")
     {
@@ -58,13 +60,18 @@ void MainWindow::fileOpen()
         sqliteLoader.load(fileName);
         if(sqliteLoader.error())
         {
-            QMessageBox::critical(this, tr("Ошибка"), sqliteLoader.errorText());
+            QMessageBox::critical(this, tr("Ошибка"), sqliteLoader.errorString());
             return;
         }
         QStringList tables = sqliteLoader.database().tables();
         QString tableName;
+        if(tables.size() == 0)
+        {
+            QMessageBox::critical(this, tr("Ошибка"),
+                                  tr("Данная база SQLite не содержит таблиц"));
+        }
         // Если таблица только одна, то загружаем ее
-        if(tables.size() == 1)
+        else if(tables.size() == 1)
             tableName = tables.first();
         // Иначе, спрашиваем пользователя, какую таблицу загрузить
         else
@@ -76,12 +83,95 @@ void MainWindow::fileOpen()
         TableModel* model = sqliteLoader.tableModel(tableName, ui->tableView);
         if(sqliteLoader.error())
         {
-            QMessageBox::critical(this, tr("Ошибка"), sqliteLoader.errorText());
+            QMessageBox::critical(this, tr("Ошибка"), sqliteLoader.errorString());
             return;
         }
         ui->tableView->setModel(model);
     }
     // TODO Добавить CSV
+    else
+    {
+        QMessageBox::critical(this, tr("Ошибка"),
+                              tr("Неизвестное расширение файла: \"")
+                              + extension + "\"");
+    }
+}
+
+void MainWindow::fileSaveAs()
+{
+    if(ui->tableView->model() == nullptr
+            || ui->tableView->model()->rowCount() == 0
+            || ui->tableView->model()->columnCount() == 0)
+    {
+        QMessageBox::critical(this, tr("Ошибка"), tr("Таблица пуста"));
+        return;
+    }
+
+    // TODO Добавить возможность сохранения в SQLite
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Сохранить как"),
+                       lastFilePath,
+                       tr("CSV (*.csv)"));
+
+    // Пользователь нажал "Отмена" или закрыл окно выбора файла
+    if(fileName.isEmpty())
+        return;
+
+    QFileInfo fileInfo(fileName);
+
+    lastFilePath = fileInfo.absolutePath();
+
+    // Экранирует двойные кавычки и ставит двойные кавычки в начале и в конце
+    // строки
+    auto escapeText = [](const QString& text) -> QString
+    {
+        QString escaped(text);
+        escaped.replace("\"", "\\\"").prepend("\"").append("\"");
+        return escaped;
+    };
+
+    // Расширение файла
+    QString extension = fileInfo.suffix().toLower();
+
+    if(extension == "csv")
+    {
+        QFile csvFile(fileName);
+        if(!csvFile.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QMessageBox::critical(this, tr("Ошибка"),
+                                  tr("Не удалось открыть файл: ")
+                                  + csvFile.errorString());
+            return;
+        }
+
+        const QAbstractItemModel* model = ui->tableView->model();
+        QTextStream csv(&csvFile);
+        // Имена столбцов
+        for(int j=0; j < model->columnCount(); ++j)
+        {
+            csv << escapeText(model->headerData(j, Qt::Horizontal).toString());
+            if(j < model->columnCount()-1)
+                csv << ", ";
+        }
+        csv << "\n";
+        // Содержимое таблицы
+        for(int i=0; i < model->rowCount(); ++i)
+        {
+            for(int j=0; j < model->columnCount(); ++j)
+            {
+                QVariant data = model->data(model->index(i,j));
+                if(qstrcmp(data.typeName(), "QString") == 0)
+                    csv << escapeText(data.toString());
+                else
+                    csv << data.toString();
+                if(j < model->columnCount()-1)
+                    csv << ", ";
+            }
+            csv << "\n";
+        }
+
+        csvFile.close();
+    }
+    // TODO Добавить db
     else
     {
         QMessageBox::critical(this, tr("Ошибка"),
