@@ -125,7 +125,8 @@ void MainWindow::fileSaveAs()
     auto escapeText = [](const QString& text) -> QString
     {
         QString escaped(text);
-        escaped.replace("\"", "\\\"").prepend("\"").append("\"");
+        // В CSV двойные кавычки экранируются не \", а ""
+        escaped.replace("\"", "\"\"").prepend("\"").append("\"");
         return escaped;
     };
 
