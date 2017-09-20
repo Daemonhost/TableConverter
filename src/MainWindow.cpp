@@ -151,7 +151,7 @@ void MainWindow::fileSaveAs()
         {
             csv << escapeText(model->headerData(j, Qt::Horizontal).toString());
             if(j < model->columnCount()-1)
-                csv << ", ";
+                csv << ",";
         }
         csv << "\n";
         // Содержимое таблицы
@@ -161,14 +161,15 @@ void MainWindow::fileSaveAs()
             {
                 QVariant data = model->data(model->index(i,j),
                                             TableModel::Roles::AsIs);
-                if(data.isNull())
-                    csv << "NULL";
-                else if(qstrcmp(data.typeName(), "QString") == 0)
-                    csv << escapeText(data.toString());
-                else
-                    csv << data.toString();
+                if(!data.isNull())
+                {
+                    if(qstrcmp(data.typeName(), "QString") == 0)
+                        csv << escapeText(data.toString());
+                    else
+                        csv << data.toString();
+                }
                 if(j < model->columnCount()-1)
-                    csv << ", ";
+                    csv << ",";
             }
             csv << "\n";
         }
