@@ -16,6 +16,23 @@ int TableModel::rowCount(const QModelIndex& parent) const
         return rowCount();
 }
 
+void TableModel::setRowCount(int rowCount)
+{
+    int prevRowCount = this->rowCount();
+    mData.resize(rowCount);
+    if(rowCount > prevRowCount)
+    {
+        for(int i=prevRowCount; i < rowCount; ++i)
+            mData[i].resize(columnCount());
+    }
+}
+
+void TableModel::appendRow()
+{
+    mData.push_back(QVector<QVariant>());
+    mData.back().resize(columnCount());
+}
+
 int TableModel::columnCount(const QModelIndex& parent) const
 {
     // Согласно документации Qt columnCount должен возвращать 0, если parent
@@ -24,6 +41,16 @@ int TableModel::columnCount(const QModelIndex& parent) const
         return 0;
     else
         return columnCount();
+}
+
+void TableModel::setColumnCount(int columnCount)
+{
+    if(columnCount != this->columnCount())
+    {
+        mHeaderData.resize(columnCount);
+        for(int i=0; i < rowCount(); ++i)
+            mData[i].resize(columnCount);
+    }
 }
 
 QVariant TableModel::data(const QModelIndex& index, int role) const
@@ -70,10 +97,5 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation,
 void TableModel::resize(int rowCount, int columnCount)
 {
     mData.resize(rowCount);
-    if(columnCount != this->columnCount())
-    {
-        mHeaderData.resize(columnCount);
-        for(int i=0; i < rowCount; ++i)
-            mData[i].resize(columnCount);
-    }
+    setColumnCount(columnCount);
 }

@@ -31,6 +31,17 @@ public:
     //! Количество строк (функция для вызова из view)
     int rowCount(const QModelIndex& parent) const override;
 
+    /*!
+     * \brief Меняет количество строк на \p rowCount
+     *
+     * Если количество строк меньше предыдущего, то лишние данные
+     * удаляются. Если больше, то создаются пустые ячейки.
+     */
+    void setRowCount(int rowCount);
+
+    //! Добавляет строку в конец таблицы, заполненную пустыми \p QVariant
+    void appendRow();
+
     //! Количество столбцов
     inline int columnCount() const
     {
@@ -39,6 +50,14 @@ public:
 
     //! Количество столбцов (функция для вызова из view)
     int columnCount(const QModelIndex& parent) const override;
+
+    /*!
+     * \brief Меняет количество столбцов на \p columnCount
+     *
+     * Если количество столбцов меньше предыдущего, то лишние данные
+     * удаляются. Если больше, то создаются пустые ячейки.
+     */
+    void setColumnCount(int columnCount);
 
     /*!
      * \brief Возвращает содержимое ячейки (\p row, \p column)
