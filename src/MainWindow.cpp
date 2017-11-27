@@ -9,6 +9,8 @@
 #include <QMessageBox>
 #include <QSqlDatabase>
 #include <QTextStream>
+
+#include "CsvLoader.h"
 #include "SqliteLoader.h"
 
 MainWindow::MainWindow(QWidget* parent) :
@@ -38,10 +40,9 @@ MainWindow::~MainWindow()
 
 void MainWindow::fileOpen()
 {
-    // TODO Добавить возможность загрузки CSV
     QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"),
                        lastFilePath,
-                       tr("SQLite (*.db)"));
+                       tr("SQLite (*.db) ;; CSV (*.csv)"));
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -53,6 +54,32 @@ void MainWindow::fileOpen()
 
     // Расширение файла
     QString extension = fileInfo.suffix().toLower();
+
+    if(extension == "csv")
+    {
+        CsvLoader newCsv;
+        newCsv.readCsv(fileName);
+        TableModel* csvTableModel = new TableModel(ui->tableView);
+        csvTableModel->setColumnCount(newCsv.csvColumnCount);
+        csvTableModel->setRowCount(newCsv.csvRowCount);
+
+        for (int i = 0; i < newCsv.csvRowCount+1; i++)
+        {
+            for (int j = 0; j < newCsv.csvColumnCount; j++)
+            {
+                if (i == 0)
+                {
+                csvTableModel->setHeaderData(j,newCsv.readCsvData());
+                }
+                else
+                {
+                csvTableModel->setData(i-1,j,newCsv.readCsvData());
+                }
+            }
+        }
+        QMessageBox::information(this,"INFO","OK!"); //чекбокс
+        ui->tableView->setModel(csvTableModel);
+    }
 
     if(extension == "db")
     {
@@ -88,7 +115,6 @@ void MainWindow::fileOpen()
         }
         ui->tableView->setModel(model);
     }
-    // TODO Добавить CSV
     else
     {
         QMessageBox::critical(this, tr("Ошибка"),
