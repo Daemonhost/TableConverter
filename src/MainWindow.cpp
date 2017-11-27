@@ -42,7 +42,7 @@ void MainWindow::fileOpen()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"),
                        lastFilePath,
-                       tr("SQLite (*.db) ;; CSV (*.csv)"));
+                       tr("CSV (*.csv)) ;; SQLite (*.db"));
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -58,29 +58,40 @@ void MainWindow::fileOpen()
     if(extension == "csv")
     {
         CsvLoader newCsv;
-        newCsv.readCsv(fileName);
-        TableModel* csvTableModel = new TableModel(ui->tableView);
-        csvTableModel->setColumnCount(newCsv.csvColumnCount);
-        csvTableModel->setRowCount(newCsv.csvRowCount);
 
+        //Открытие csv и внесение данных в buffer
+        newCsv.openCsv(fileName);
+
+        //Проверка csv: является ли он пустым
+        if (newCsv.emptyCsvCheck())
+        {
+            QMessageBox::critical(this,tr("Ошибка"), tr("Файл csv пуст"));
+            return;
+        }
+
+        newCsv.readCsvRowColumn(); //Чтение кол-ва строк и стоблцов в файле
+        TableModel* csvTableModel = new TableModel(ui->tableView); //Инициализация модели
+        csvTableModel->setColumnCount(newCsv.csvColumnCount); //Внесение кол-ва столбцов в модель
+        csvTableModel->setRowCount(newCsv.csvRowCount); //Внесение кол-ва строк в модель
+
+        //Вложенный цикл, заполняющий заголовок и ячейки таблицы данными из файла
         for (int i = 0; i < newCsv.csvRowCount+1; i++)
         {
             for (int j = 0; j < newCsv.csvColumnCount; j++)
             {
                 if (i == 0)
                 {
-                csvTableModel->setHeaderData(j,newCsv.readCsvData());
+                csvTableModel->setHeaderData(j,QVariant(newCsv.readCsvData()));
                 }
                 else
                 {
-                csvTableModel->setData(i-1,j,newCsv.readCsvData());
+                csvTableModel->setData(i-1,j,QVariant(newCsv.readCsvData()));
                 }
             }
         }
-        QMessageBox::information(this,"INFO","OK!"); //чекбокс
+        QMessageBox::information(this,"INFO","OK!"); //Служебный бокс для проверки работоспособности кода, удалить
         ui->tableView->setModel(csvTableModel);
     }
-
     if(extension == "db")
     {
         SqliteLoader sqliteLoader("OpenDbConnection");
@@ -133,10 +144,9 @@ void MainWindow::fileSaveAs()
         return;
     }
 
-    // TODO Добавить возможность сохранения в SQLite
     QString fileName = QFileDialog::getSaveFileName(this, tr("Сохранить как"),
                        lastFilePath,
-                       tr("CSV (*.csv)"));
+                       tr("CSV (*.csv)) ;; SQLite (*.db"));
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -198,6 +208,10 @@ void MainWindow::fileSaveAs()
                     csv << ",";
             }
             csv << "\n";
+        }
+        if (extension == 'db')
+        {
+
         }
 
         csvFile.close();

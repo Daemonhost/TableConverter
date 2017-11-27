@@ -3,16 +3,36 @@
 #include <QFile>
 #include <QBuffer>
 #include <QByteArray>
-#include <QMessageBox>
 #include <QString>
 #include <QVariant>
 
-void CsvLoader::readCsv(QString fileName)
+bool CsvLoader::emptyCsvCheck()
+{
+    buffer.seek(0);
+
+    while(!buffer.atEnd())
+    {
+        buffer.getChar(&ch);
+        if (ch != ' ')
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void CsvLoader::openCsv (QString fileName)
 {
     QFile csvFile(fileName);
     csvFile.open(QFile::ReadOnly);
     buffer.open(QBuffer::ReadWrite);
     buffer.write(csvFile.readAll());
+    csvFile.close(); //Закрываем csv файл, т.к. мы занесли все данные в buffer
+    return;
+}
+
+void CsvLoader::readCsvRowColumn()
+{
     csvRowCount = 0; //Счетчик кол-ва строк
     csvColumnCount = 1; //Счетчик кол-ва столбцов
     buffer.seek(0);
@@ -25,11 +45,11 @@ void CsvLoader::readCsv(QString fileName)
     do
     {
         buffer.getChar(&ch);
-        if (flag)
+        if (noQuotes)
         {
             if (ch == '"')
             {
-                flag = false;
+                noQuotes = false;
             }
             else
             {
@@ -40,7 +60,7 @@ void CsvLoader::readCsv(QString fileName)
         {
             if (ch == '"')
             {
-                flag = true;
+                noQuotes = true;
             }
         }
     }
@@ -59,9 +79,9 @@ QString CsvLoader::readCsvData()
         pointold = pointnew = 0;
     }
     buffer.getChar(&ch);
-    if (ch == '"') flag = false; //Является ли первый элемент кавычками?
+    if (ch == '"') noQuotes = false; //Является ли первый элемент кавычками?
     buffer.seek(pointold);
-    if (flag) //Нет, кавычек нет
+    if (noQuotes) //Нет, кавычек нет
     {
         //Вычисляем размер объекта
         do
@@ -70,7 +90,7 @@ QString CsvLoader::readCsvData()
             pointnew++;
         }
         while ((ch != ('\n')) && (ch != (',')) && (!buffer.atEnd()));
-        char word[pointnew-pointold-1]; //Инициализируем соотвествующего размера массив
+        char word[pointnew-pointold]; //Инициализируем соотвествующего размера массив
         buffer.seek(pointold); //Возврат каретки на начало объекта
         counter = 0;
         do
@@ -102,7 +122,7 @@ QString CsvLoader::readCsvData()
         }
         while (ch != '"');
         buffer.seek(pointold); //Возврат каретки на начало объекта
-        char word[pointnew-pointold+1]; //Инициализируем соотвествующего размера массив, учитывая кавычки
+        char word[pointnew-pointold]; //Инициализируем соотвествующего размера массив, учитывая кавычки
         counter = 1;
         do
         {
@@ -115,7 +135,7 @@ QString CsvLoader::readCsvData()
         word[0]=word[pointnew-pointold]='"'; //Заполняем начало и конец кавычками
         pointnew+=1;
         pointold=pointnew;
-        flag = true; //Поднимаем флаг обратно, кавычки пройдены
+        noQuotes = true; //Поднимаем флаг обратно, кавычки пройдены
         result = word;
     }
     return result;
