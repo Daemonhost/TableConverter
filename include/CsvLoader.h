@@ -1,34 +1,61 @@
 #ifndef CSVLOADER_H
 #define CSVLOADER_H
 
-#include <QBuffer>
+#include <QFile>
 #include <QString>
+#include "TableModel.h"
 
 class CsvLoader
 {
-private:
-    QBuffer buffer; //Буфер для хранения данных из файла
-    char ch; //Переменная для поочередной записи символов
-    bool csvReadDataStart = true; //Флаг первичного запуска считывания данных
-    bool noQuotes = true; //Флаг, означающий отсутствие кавычек
-    ushort counter; // Служебный счетчик
-    int pointold; // Служебная переменная для хранения старой позиции каретки при чтении
-    int pointnew; // Служебная переменная для хранения новой позиции каретки при чтении
 public:
-    int csvRowCount; //Счетчик кол-ва строк
-    int csvColumnCount; //Счетчик кол-ва столбцов
+    CsvLoader();
 
-    //Метод, осуществляющий проверку, является ли csv файл пустым. Если файл пуст, возвращает true
-    bool emptyCsvCheck();
+    /*!
+     * \brief Считывает CSV файл с данным именем и делает из него
+     *        TableModel.
+     * \param fileName Имя файла
+     * \param parent Родитель новой TableModel
+     *
+     * В случае ошибки эта функция вернет nullptr, error() вернет
+     * true, а errorText() - сообщение об ошибке.
+     */
+    TableModel* read(const QString& fileName, QObject* parent = nullptr);
 
-    //Метод, открывающий файл csv и заносящий данные в buffer
-    void openCsv (QString fileName);
+    /*!
+     * \brief Возвращает true, если во время предыдущих операций произошла
+     *        ошибка. Иначе false.
+     */
+    bool error() const;
 
-    //Метод, считающий кол-во строк и столбцов csv файла
-    void readCsvRowColumn ();
+    /*!
+     * \brief Возвращает текст последней ошибки, если она произошла, а иначе -
+     *        пустую строку.
+     */
+    const QString& errorString() const;
 
-    //Метод, считывающий данные
-    QString readCsvData();
+private:
+    //! Статус функции readElement
+    enum class ReadElementStatus
+    {
+        //! Строка продолжается
+        RowContinues,
+
+        //! Строка кончилась
+        RowEnded,
+
+        //! Файл кончился
+        FileEnded
+    };
+
+    /*!
+     * \brief Метод, считывающий один элемент из CSV.
+     * \return ReadElementStatus::RowContinues, если после элемента идет ','
+     *         и ReadElementStatus::RowEnded, если после элемента идет '\n'.
+     */
+    ReadElementStatus readElement(QString& result, QFile& csvFile);
+
+    bool mError;
+    QString mErrorString;
 };
 
 #endif // CSVLOADER_H

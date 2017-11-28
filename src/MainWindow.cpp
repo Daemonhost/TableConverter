@@ -42,7 +42,7 @@ void MainWindow::fileOpen()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"),
                        lastFilePath,
-                       tr("CSV (*.csv)) ;; SQLite (*.db"));
+                       tr("CSV (*.csv) ;; SQLite (*.db)"));
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -59,40 +59,18 @@ void MainWindow::fileOpen()
     {
         CsvLoader newCsv;
 
-        //Открытие csv и внесение данных в buffer
-        newCsv.openCsv(fileName);
+        TableModel* csvTableModel = newCsv.read(fileName, ui->tableView);
 
-        //Проверка csv: является ли он пустым
-        if (newCsv.emptyCsvCheck())
+        if(newCsv.error())
         {
-            QMessageBox::critical(this,tr("Ошибка"), tr("Файл csv пуст"));
+            QMessageBox::critical(this,tr("Ошибка"), newCsv.errorString());
             return;
         }
 
-        newCsv.readCsvRowColumn(); //Чтение кол-ва строк и стоблцов в файле
-        TableModel* csvTableModel = new TableModel(ui->tableView); //Инициализация модели
-        csvTableModel->setColumnCount(newCsv.csvColumnCount); //Внесение кол-ва столбцов в модель
-        csvTableModel->setRowCount(newCsv.csvRowCount); //Внесение кол-ва строк в модель
-
-        //Вложенный цикл, заполняющий заголовок и ячейки таблицы данными из файла
-        for (int i = 0; i < newCsv.csvRowCount+1; i++)
-        {
-            for (int j = 0; j < newCsv.csvColumnCount; j++)
-            {
-                if (i == 0)
-                {
-                csvTableModel->setHeaderData(j,QVariant(newCsv.readCsvData()));
-                }
-                else
-                {
-                csvTableModel->setData(i-1,j,QVariant(newCsv.readCsvData()));
-                }
-            }
-        }
         QMessageBox::information(this,"INFO","OK!"); //Служебный бокс для проверки работоспособности кода, удалить
         ui->tableView->setModel(csvTableModel);
     }
-    if(extension == "db")
+    else if(extension == "db")
     {
         SqliteLoader sqliteLoader("OpenDbConnection");
         sqliteLoader.load(fileName);
@@ -209,7 +187,7 @@ void MainWindow::fileSaveAs()
             }
             csv << "\n";
         }
-        if (extension == 'db')
+        if (extension == "db")
         {
 
         }

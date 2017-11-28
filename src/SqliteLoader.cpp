@@ -7,7 +7,7 @@
 
 SqliteLoader::SqliteLoader(const QString& connectionName) :
     mError(false),
-    mErrorText(),
+    mErrorString(),
     mDatabase(QSqlDatabase::addDatabase("QSQLITE", connectionName)) {}
 
 void SqliteLoader::load(const QString& fileName)
@@ -16,8 +16,8 @@ void SqliteLoader::load(const QString& fileName)
     if(!mDatabase.open())
     {
         mError = true;
-        mErrorText = QString("Не удалось открыть файл: ")
-                     + mDatabase.lastError().text();
+        mErrorString = QString("Не удалось открыть файл: ")
+                       + mDatabase.lastError().text();
     }
 }
 
@@ -28,8 +28,8 @@ TableModel* SqliteLoader::tableModel(const QString& tableName, QObject* parent)
     if(!query.exec())
     {
         mError = true;
-        mErrorText = QString("Не удалось открыть таблицу: ")
-                     + query.lastError().text();
+        mErrorString = QString("Не удалось открыть таблицу: ")
+                       + query.lastError().text();
         return nullptr;
     }
     else
@@ -63,7 +63,7 @@ bool SqliteLoader::error() const
 
 const QString& SqliteLoader::errorString() const
 {
-    return mErrorText;
+    return mErrorString;
 }
 
 const QSqlDatabase& SqliteLoader::database() const

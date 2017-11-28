@@ -1,142 +1,178 @@
 #include "CsvLoader.h"
 
-#include <QFile>
-#include <QBuffer>
-#include <QByteArray>
 #include <QString>
 #include <QVariant>
+#include <QVector>
 
-bool CsvLoader::emptyCsvCheck()
+CsvLoader::CsvLoader() :
+    mError(false),
+    mErrorString() {}
+
+TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
 {
-    buffer.seek(0);
-
-    while(!buffer.atEnd())
-    {
-        buffer.getChar(&ch);
-        if (ch != ' ')
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-void CsvLoader::openCsv (QString fileName)
-{
+    //Открытие csv и внесение данных в buffer
     QFile csvFile(fileName);
-    csvFile.open(QFile::ReadOnly);
-    buffer.open(QBuffer::ReadWrite);
-    buffer.write(csvFile.readAll());
-    csvFile.close(); //Закрываем csv файл, т.к. мы занесли все данные в buffer
-    return;
-}
-
-void CsvLoader::readCsvRowColumn()
-{
-    csvRowCount = 0; //Счетчик кол-ва строк
-    csvColumnCount = 1; //Счетчик кол-ва столбцов
-    buffer.seek(0);
-    while(!buffer.atEnd())
+    if(!csvFile.open(QFile::ReadOnly | QFile::Text))
     {
-        buffer.getChar(&ch);
-        if (ch == '\n') csvRowCount++;
+        mError = true;
+        mErrorString = csvFile.errorString();
+        return nullptr;
     }
-    buffer.seek(0);
-    do
+
+    QVector<QString> header;
+    QString element;
+    // Считываем заголовок
+    ReadElementStatus status = readElement(element, csvFile);
+    if(status == ReadElementStatus::FileEnded)
     {
-        buffer.getChar(&ch);
-        if (noQuotes)
+        mError = true;
+        mErrorString = QObject::tr("CSV файл пуст");
+        csvFile.close();
+        return nullptr;
+    }
+    header += element;
+    while(status == ReadElementStatus::RowContinues)
+    {
+        status = readElement(element, csvFile);
+        header += element;
+    }
+
+    TableModel* tableModel = new TableModel(parent);
+    tableModel->setColumnCount(header.size());
+    for(int i=0; i < header.size(); ++i)
+        tableModel->setHeaderData(i, header[i]);
+    header.clear();
+
+    //Вложенный цикл, заполняющий заголовок и ячейки таблицы данными из файла
+    while(status != ReadElementStatus::FileEnded)
+    {
+        for (int j = 0; j < tableModel->columnCount(); j++)
         {
-            if (ch == '"')
+            status = readElement(element, csvFile);
+            if(error())
             {
-                noQuotes = false;
+                delete tableModel;
+                csvFile.close();
+                return nullptr;
+            }
+            else if(status == ReadElementStatus::FileEnded && j == 0)
+            {
+                break;
+            }
+            else if(status == ReadElementStatus::RowContinues
+                    && j == tableModel->columnCount() - 1)
+            {
+                mError = true;
+                mErrorString = QObject::tr("В строке ");
+                mErrorString += QString::number(tableModel->rowCount());
+                mErrorString += " больше столбцов, чем нужно";
+                delete tableModel;
+                csvFile.close();
+                return nullptr;
+            }
+            else if(status != ReadElementStatus::RowContinues
+                    && j != tableModel->columnCount() - 1)
+            {
+                mError = true;
+                mErrorString = QObject::tr("В строке ");
+                mErrorString += QString::number(tableModel->rowCount());
+                mErrorString += " меньше столбцов, чем нужно";
+                delete tableModel;
+                csvFile.close();
+                return nullptr;
             }
             else
             {
-                if (ch == ',') csvColumnCount++;
-            }
-        }
-        else
-        {
-            if (ch == '"')
-            {
-                noQuotes = true;
+                if(j == 0)
+                {
+                    tableModel->appendRow();
+                }
+                tableModel->setData(tableModel->rowCount()-1, j,
+                                    QVariant(element));
             }
         }
     }
-    while  (ch != '\n');
-    return;
+
+    csvFile.close();
+    return tableModel;
 }
 
-QString CsvLoader::readCsvData()
+CsvLoader::ReadElementStatus CsvLoader::readElement(QString& result,
+                                                    QFile& csvFile)
 {
-    QString result;
-    //Если метод запускается впервые
-    if (csvReadDataStart)
+    char ch; //Переменная для поочередной записи символов
+    result.clear();
+
+    while(csvFile.getChar(&ch) && (ch == ' ' || ch == '\t'));
+    if(csvFile.atEnd())
+        return ReadElementStatus::FileEnded;
+    else if(ch == ',')
+        return ReadElementStatus::RowContinues;
+    else if(ch == '\n')
+        return ReadElementStatus::RowEnded;
+
+    if (ch != '"') // Кавычек нет
     {
-        buffer.seek(0); //Каретка на нуль
-        csvReadDataStart=false; //Флаг опустить
-        pointold = pointnew = 0;
+        result += ch;
+        while(csvFile.getChar(&ch) && ch != '\n' && ch != ',')
+        {
+            result += ch;
+        }
+        result = result.trimmed();
+        if(ch == ',')
+            return ReadElementStatus::RowContinues;
+        else
+            return ReadElementStatus::RowEnded;
     }
-    buffer.getChar(&ch);
-    if (ch == '"') noQuotes = false; //Является ли первый элемент кавычками?
-    buffer.seek(pointold);
-    if (noQuotes) //Нет, кавычек нет
+    else // Кавычки есть
     {
-        //Вычисляем размер объекта
-        do
+        while(csvFile.getChar(&ch))
         {
-            buffer.getChar(&ch);
-            pointnew++;
+            if(ch == '"')
+            {
+                csvFile.peek(&ch, 1);
+                if(ch == '"')
+                {
+                    result += '"';
+                    csvFile.getChar(&ch);
+                }
+                else
+                    break;
+            }
+            else
+                result += ch;
         }
-        while ((ch != ('\n')) && (ch != (',')) && (!buffer.atEnd()));
-        char word[pointnew-pointold]; //Инициализируем соотвествующего размера массив
-        buffer.seek(pointold); //Возврат каретки на начало объекта
-        counter = 0;
-        do
+
+        if(csvFile.atEnd() && ch != '"')
         {
-            word[counter]=ch;
-            counter++;
-            buffer.getChar(&ch);
+            mError = true;
+            mErrorString = QObject::tr("В CSV не закрыта кавычка");
+            return ReadElementStatus::RowContinues;
         }
-        while ((ch != ('\n')) && (ch != (',')) && (!buffer.atEnd()));
-        if (buffer.atEnd()) //Исправление потери символа на конце файла
+
+        while(csvFile.getChar(&ch) && ch != '\n' && ch != ',')
         {
-            ch = word[0];
-            word[0] = word[counter];
-            word[counter] = ch;
+            if(ch != ' ' && ch != '\t')
+            {
+                mError = true;
+                mErrorString = QObject::tr("В CSV после закрывающей кавычки "
+                                           "идет текст");
+                return ReadElementStatus::RowContinues;
+            }
         }
-        pointold=pointnew;
-        result = word;
+        if(ch == ',')
+            return ReadElementStatus::RowContinues;
+        else
+            return ReadElementStatus::RowEnded;
     }
-    else //Да, кавычки есть
-    {
-        buffer.getChar(&ch);
-        pointold+=1;
-        pointnew+=1; //Перемещаем каретку дальше, долой с кавычек, не забывая учесть их при задании размера массива
-        //Вычисляем размер объекта
-        do
-        {
-            pointnew++;
-            buffer.getChar(&ch);
-        }
-        while (ch != '"');
-        buffer.seek(pointold); //Возврат каретки на начало объекта
-        char word[pointnew-pointold]; //Инициализируем соотвествующего размера массив, учитывая кавычки
-        counter = 1;
-        do
-        {
-            buffer.getChar(&ch);
-            word[counter]=ch;
-            counter++;
-        }
-        while (ch != '"');
-        buffer.getChar(&ch);
-        word[0]=word[pointnew-pointold]='"'; //Заполняем начало и конец кавычками
-        pointnew+=1;
-        pointold=pointnew;
-        noQuotes = true; //Поднимаем флаг обратно, кавычки пройдены
-        result = word;
-    }
-    return result;
+}
+
+bool CsvLoader::error() const
+{
+    return mError;
+}
+
+const QString& CsvLoader::errorString() const
+{
+    return mErrorString;
 }

@@ -53,7 +53,7 @@ public:
 
 private:
     bool mError;
-    QString mErrorText;
+    QString mErrorString;
     QSqlDatabase mDatabase;
 };
 
