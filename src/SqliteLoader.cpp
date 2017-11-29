@@ -8,22 +8,31 @@
 SqliteLoader::SqliteLoader(const QString& connectionName) :
     mError(false),
     mErrorString(),
-    mDatabase(QSqlDatabase::addDatabase("QSQLITE", connectionName)) {}
+    mDatabase(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE",
+                               connectionName))) {}
+
+SqliteLoader::~SqliteLoader()
+{
+    QString connectionName = mDatabase->connectionName();
+    mDatabase->close();
+    delete mDatabase;
+    QSqlDatabase::removeDatabase(connectionName);
+}
 
 void SqliteLoader::load(const QString& fileName)
 {
-    mDatabase.setDatabaseName(fileName);
-    if(!mDatabase.open())
+    mDatabase->setDatabaseName(fileName);
+    if(!mDatabase->open())
     {
         mError = true;
         mErrorString = QString("Не удалось открыть файл: ")
-                       + mDatabase.lastError().text();
+                       + mDatabase->lastError().text();
     }
 }
 
 TableModel* SqliteLoader::tableModel(const QString& tableName, QObject* parent)
 {
-    QSqlQuery query(mDatabase);
+    QSqlQuery query(*mDatabase);
     query.prepare(QString("SELECT * FROM %1").arg(tableName));
     if(!query.exec())
     {
@@ -68,5 +77,5 @@ const QString& SqliteLoader::errorString() const
 
 const QSqlDatabase& SqliteLoader::database() const
 {
-    return mDatabase;
+    return *mDatabase;
 }

@@ -13,6 +13,9 @@
 #include "CsvLoader.h"
 #include "SqliteLoader.h"
 
+const QString MainWindow::csvFilter = "CSV (*.csv)";
+const QString MainWindow::dbFilter  = "SQLite (*.db)";
+
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -20,6 +23,8 @@ MainWindow::MainWindow(QWidget* parent) :
     ui->setupUi(this);
 
     lastFilePath = QDir::homePath();
+    lastOpenFileFilter  = csvFilter;
+    lastSavedFileFilter = csvFilter;
 
     ui->tableView->setSelectionMode(QTableView::NoSelection);
     ui->tableView->setFocusPolicy(Qt::NoFocus);
@@ -42,7 +47,8 @@ void MainWindow::fileOpen()
 {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"),
                        lastFilePath,
-                       tr("CSV (*.csv) ;; SQLite (*.db)"));
+                       QString("%1;;%2").arg(csvFilter, dbFilter),
+                       &lastOpenFileFilter);
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -67,7 +73,6 @@ void MainWindow::fileOpen()
             return;
         }
 
-        QMessageBox::information(this,"INFO","OK!"); //Служебный бокс для проверки работоспособности кода, удалить
         ui->tableView->setModel(csvTableModel);
     }
     else if(extension == "db")
@@ -92,8 +97,14 @@ void MainWindow::fileOpen()
         // Иначе, спрашиваем пользователя, какую таблицу загрузить
         else
         {
-            // TODO Реализовать выбор
-            tableName = tables.first();
+            tableSelectionDialog.setTableNames(tables, false);
+            int status = tableSelectionDialog.exec();
+            if(status == QDialog::Rejected)
+                return;
+            else
+            {
+                tableName = tables[tableSelectionDialog.currentNameIndex()];
+            }
         }
 
         TableModel* model = sqliteLoader.tableModel(tableName, ui->tableView);
@@ -124,7 +135,8 @@ void MainWindow::fileSaveAs()
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Сохранить как"),
                        lastFilePath,
-                       tr("CSV (*.csv)) ;; SQLite (*.db"));
+                       QString("%1;;%2").arg(csvFilter, dbFilter),
+                       &lastSavedFileFilter);
 
     // Пользователь нажал "Отмена" или закрыл окно выбора файла
     if(fileName.isEmpty())
@@ -187,14 +199,13 @@ void MainWindow::fileSaveAs()
             }
             csv << "\n";
         }
-        if (extension == "db")
-        {
-
-        }
 
         csvFile.close();
     }
-    // TODO Добавить db
+    else if(extension == "db")
+    {
+        // TODO Добавить db
+    }
     else
     {
         QMessageBox::critical(this, tr("Ошибка"),

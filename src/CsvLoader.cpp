@@ -63,9 +63,8 @@ TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
                     && j == tableModel->columnCount() - 1)
             {
                 mError = true;
-                mErrorString = QObject::tr("В строке ");
-                mErrorString += QString::number(tableModel->rowCount());
-                mErrorString += " больше столбцов, чем нужно";
+                mErrorString = QString("В строке %1 больше столбцов, чем нужно")
+                               .arg(QString::number(tableModel->rowCount()));
                 delete tableModel;
                 csvFile.close();
                 return nullptr;
@@ -74,9 +73,8 @@ TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
                     && j != tableModel->columnCount() - 1)
             {
                 mError = true;
-                mErrorString = QObject::tr("В строке ");
-                mErrorString += QString::number(tableModel->rowCount());
-                mErrorString += " меньше столбцов, чем нужно";
+                mErrorString = QString("В строке %1 меньше столбцов, чем нужно")
+                               .arg(QString::number(tableModel->rowCount()));
                 delete tableModel;
                 csvFile.close();
                 return nullptr;
@@ -98,7 +96,7 @@ TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
 }
 
 CsvLoader::ReadElementStatus CsvLoader::readElement(QString& result,
-                                                    QFile& csvFile)
+        QFile& csvFile)
 {
     char ch; //Переменная для поочередной записи символов
     result.clear();

@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <TableSelectionDialog.h>
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,17 @@ private:
 
     //! Путь к последнему открытому или сохраненному файлу
     QString lastFilePath;
+
+    //! Расширение последнего открытого файла
+    QString lastOpenFileFilter;
+
+    //! Расширение последнего сохрененного файла
+    QString lastSavedFileFilter;
+
+    static const QString csvFilter;
+    static const QString dbFilter;
+
+    TableSelectionDialog tableSelectionDialog;
 
 private slots:
     /*!

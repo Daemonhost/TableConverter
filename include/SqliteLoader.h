@@ -17,6 +17,8 @@ public:
      */
     SqliteLoader(const QString& connectionName);
 
+    ~SqliteLoader();
+
     /*!
      * \brief Загружает базу данных из файла.
      *
@@ -54,7 +56,7 @@ public:
 private:
     bool mError;
     QString mErrorString;
-    QSqlDatabase mDatabase;
+    QSqlDatabase* mDatabase;
 };
 
 #endif // SQLITELOADER_H

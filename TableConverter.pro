@@ -13,13 +13,16 @@ SOURCES += src/main.cpp\
         src/MainWindow.cpp \
     src/SqliteLoader.cpp \
     src/TableModel.cpp \
-    src/CsvLoader.cpp
+    src/CsvLoader.cpp \
+    src/TableSelectionDialog.cpp
 
 INCLUDEPATH += include
 
 HEADERS  += include/MainWindow.h \
     include/SqliteLoader.h \
     include/TableModel.h \
-    include/CsvLoader.h
+    include/CsvLoader.h \
+    include/TableSelectionDialog.h
 
-FORMS    += MainWindow.ui
+FORMS    += MainWindow.ui \
+    TableSelectionDialog.ui
