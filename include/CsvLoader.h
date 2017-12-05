@@ -54,6 +54,26 @@ private:
      */
     ReadElementStatus readElement(QString& result, QFile& csvFile);
 
+    /*!
+     * \brief Выводит типы столбцов таблицы и приводит столбцы к выведенным
+     *        типам.
+     */
+    void inferAndCastColumnTypes(TableModel* tableModel);
+
+    enum class ElementType
+    {
+        Null,
+        Int,
+        Real,
+        Text
+    };
+
+    /*!
+     * \brief Выводит тип \p element и присваивает \p currentType ближайший
+     *        общий тип \p element и \p currentType.
+     */
+    void updateColumnType(const QString& element, ElementType& currentType);
+
     bool mError;
     QString mErrorString;
 };

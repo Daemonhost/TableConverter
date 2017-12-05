@@ -92,6 +92,9 @@ TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
     }
 
     csvFile.close();
+
+    inferAndCastColumnTypes(tableModel);
+
     return tableModel;
 }
 
@@ -162,6 +165,65 @@ CsvLoader::ReadElementStatus CsvLoader::readElement(QString& result,
             return ReadElementStatus::RowContinues;
         else
             return ReadElementStatus::RowEnded;
+    }
+}
+
+void CsvLoader::inferAndCastColumnTypes(TableModel* tableModel)
+{
+    QVector<ElementType> columnTypes(tableModel->columnCount(),
+                                     ElementType::Null);
+    for(int i=0; i < tableModel->rowCount(); ++i)
+    {
+        for(int j=0; j < tableModel->columnCount(); ++j)
+        {
+            updateColumnType(tableModel->data(i,j).toString(), columnTypes[j]);
+        }
+    }
+
+    for(int i=0; i < tableModel->rowCount(); ++i)
+    {
+        for(int j=0; j < tableModel->columnCount(); ++j)
+        {
+            if(columnTypes[j] == ElementType::Real)
+                tableModel->setData(i, j, tableModel->data(i,j).toDouble());
+            else if(columnTypes[j] == ElementType::Int)
+                tableModel->setData(i, j, tableModel->data(i,j).toInt());
+        }
+    }
+}
+
+void CsvLoader::updateColumnType(const QString& element,
+                                 ElementType& currentType)
+{
+    // Text остается Text'ом, а пустая строка - NULL,
+    // в случае чего тип не меняется
+    if(currentType != ElementType::Text && !element.isEmpty())
+    {
+        // Есть ли в строке '.'
+        bool hasPoint = false;
+        for(int i=0; i < element.length(); ++i)
+        {
+            if(element[i] == '.')
+            {
+                // Если встретилось две '.', то Text.
+                if(hasPoint)
+                {
+                    currentType = ElementType::Text;
+                    return;
+                }
+                else
+                    hasPoint = true;
+            }
+            else if(!element[i].isDigit())
+            {
+                currentType = ElementType::Text;
+                return;
+            }
+        }
+        if(hasPoint)
+            currentType = ElementType::Real;
+        else if(currentType != ElementType::Real)
+            currentType = ElementType::Int;
     }
 }
 

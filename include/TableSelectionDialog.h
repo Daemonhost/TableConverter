@@ -17,6 +17,7 @@ public:
 
     void setTableNames(const QStringList& names, bool editable);
     int currentNameIndex() const;
+    QString currentText() const;
 
 private:
     Ui::TableSelectionDialog *ui;

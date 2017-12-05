@@ -12,6 +12,7 @@
 
 #include "CsvLoader.h"
 #include "SqliteLoader.h"
+#include "SqliteWriter.h"
 
 const QString MainWindow::csvFilter = "CSV (*.csv)";
 const QString MainWindow::dbFilter  = "SQLite (*.db)";
@@ -204,7 +205,33 @@ void MainWindow::fileSaveAs()
     }
     else if(extension == "db")
     {
-        // TODO Добавить db
+        SqliteWriter sqliteWriter("SaveDbConnection");
+        sqliteWriter.open(fileName);
+        if(sqliteWriter.error())
+        {
+            QMessageBox::critical(this, tr("Ошибка"),
+                                  sqliteWriter.errorString());
+            return;
+        }
+        QStringList tables = sqliteWriter.database().tables();
+        QString tableName;
+
+        tableSelectionDialog.setTableNames(tables, true);
+        int status = tableSelectionDialog.exec();
+        if(status == QDialog::Rejected)
+            return;
+        else
+        {
+            tableName = tableSelectionDialog.currentText();
+        }
+
+        sqliteWriter.write(tableName, (TableModel*) ui->tableView->model());
+        if(sqliteWriter.error())
+        {
+            QMessageBox::critical(this, tr("Ошибка"),
+                                  sqliteWriter.errorString());
+            return;
+        }
     }
     else
     {

@@ -14,7 +14,8 @@ SOURCES += src/main.cpp\
     src/SqliteLoader.cpp \
     src/TableModel.cpp \
     src/CsvLoader.cpp \
-    src/TableSelectionDialog.cpp
+    src/TableSelectionDialog.cpp \
+    src/SqliteWriter.cpp
 
 INCLUDEPATH += include
 
@@ -22,7 +23,8 @@ HEADERS  += include/MainWindow.h \
     include/SqliteLoader.h \
     include/TableModel.h \
     include/CsvLoader.h \
-    include/TableSelectionDialog.h
+    include/TableSelectionDialog.h \
+    include/SqliteWriter.h
 
 FORMS    += MainWindow.ui \
     TableSelectionDialog.ui

@@ -25,3 +25,8 @@ int TableSelectionDialog::currentNameIndex() const
 {
     return ui->tableName->currentIndex();
 }
+
+QString TableSelectionDialog::currentText() const
+{
+    return ui->tableName->currentText();
+}
