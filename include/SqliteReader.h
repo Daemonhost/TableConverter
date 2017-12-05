@@ -35,7 +35,7 @@ public:
      * В случае ошибки эта функция вернет nullptr, error() вернет
      * true, а errorText() - сообщение об ошибке.
      */
-    TableModel* tableModel(const QString& tableName, QObject* parent = nullptr);
+    TableModel* read(const QString& tableName, QObject* parent = nullptr);
 
     /*!
      * \brief Возвращает true, если во время предыдущих операций произошла

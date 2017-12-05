@@ -110,7 +110,7 @@ void MainWindow::fileOpen()
             }
         }
 
-        TableModel* model = sqliteLoader.tableModel(tableName, ui->tableView);
+        TableModel* model = sqliteLoader.read(tableName, ui->tableView);
         if(sqliteLoader.error())
         {
             QMessageBox::critical(this, tr("Ошибка"), sqliteLoader.errorString());

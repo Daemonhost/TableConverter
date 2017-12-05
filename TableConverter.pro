@@ -11,8 +11,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES  += src/main.cpp \
             src/MainWindow.cpp \
-            src/TableModel.cpp \
             src/TableSelectionDialog.cpp \
+            src/TableModel.cpp \
             src/SqliteWriter.cpp \
             src/SqliteReader.cpp \
             src/CsvReader.cpp \
@@ -21,8 +21,8 @@ SOURCES  += src/main.cpp \
 INCLUDEPATH += include
 
 HEADERS  += include/MainWindow.h \
-            include/TableModel.h \
             include/TableSelectionDialog.h \
+            include/TableModel.h \
             include/SqliteWriter.h \
             include/SqliteReader.h \
             include/CsvReader.h \

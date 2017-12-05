@@ -30,7 +30,7 @@ void SqliteReader::open(const QString& fileName)
     }
 }
 
-TableModel* SqliteReader::tableModel(const QString& tableName, QObject* parent)
+TableModel* SqliteReader::read(const QString& tableName, QObject* parent)
 {
     QSqlQuery query(*mDatabase);
     if(!query.exec(QString("SELECT * FROM %1").arg(tableName)))

@@ -2,3 +2,4 @@
 *.orig
 *.autosave
 doc/
+build-test*/
