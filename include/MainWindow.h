@@ -16,7 +16,9 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = nullptr);
+    //! Создает \p MainWindow с данным родителем
+    explicit MainWindow(QWidget* parent = nullptr);
+
     ~MainWindow();
 
 private:

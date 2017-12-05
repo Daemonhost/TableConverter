@@ -6,26 +6,25 @@
 #include "TableModel.h"
 
 /*!
- * \brief Класс для загрузки таблицы из базы данных SQLite и возможностью
- *        отображения таблиц в QTableView.
+ * \brief Класс для чтения таблицы из базы данных SQLite.
  */
-class SqliteLoader
+class SqliteReader
 {
 public:
     /*!
      * \param connectionName Имя соединения QSqlDatabase.
      */
-    SqliteLoader(const QString& connectionName);
+    SqliteReader(const QString& connectionName);
 
-    ~SqliteLoader();
+    ~SqliteReader();
 
     /*!
-     * \brief Загружает базу данных из файла.
+     * \brief Открывает базу данных.
      *
-     * Если во время загрузки произошла ошибка, то error() вернет true, а
+     * Если во время открытия произошла ошибка, то error() вернет true, а
      * errorText() - сообщение об ошибке.
      */
-    void load(const QString& fileName);
+    void open(const QString& fileName);
 
     /*!
      * \brief Считывает таблицу с данным именем из базы и делает из нее

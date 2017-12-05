@@ -20,6 +20,7 @@ public:
         AsIs = Qt::UserRole
     };
 
+    //! Создает \p TableModel с данным родителем
     TableModel(QObject* parent = nullptr);
 
     //! Количество строк

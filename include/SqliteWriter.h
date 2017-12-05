@@ -6,9 +6,16 @@
 #include <QSqlDatabase>
 #include "TableModel.h"
 
+/*!
+ * \brief Класс для записи таблицы в базу данных SQLite.
+ */
 class SqliteWriter
 {
 public:
+    /*!
+     * \brief Создает \p SqliteWriter и открывает соединение с базой данных
+     * \param connectionName Имя соединения
+     */
     SqliteWriter(const QString& connectionName);
 
     ~SqliteWriter();
@@ -16,12 +23,18 @@ public:
     /*!
      * \brief Открывает базу данных.
      *
-     * Если во время загрузки произошла ошибка, то error() вернет true, а
+     * Если во время открытия произошла ошибка, то error() вернет true, а
      * errorText() - сообщение об ошибке.
      */
     void open(const QString& fileName);
 
-    void write(const QString& fileName, const TableModel* model);
+    /*!
+     * \brief Записывает \p model в раннее открытую базу данных.
+     *        Если таблица уже существует, то она пересоздается.
+     * \param tableName Имя таблицы
+     * \param model Таблица
+     */
+    void write(const QString& tableName, const TableModel* model);
 
     /*!
      * \brief Возвращает true, если во время предыдущих операций произошла

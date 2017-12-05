@@ -1,7 +1,7 @@
 #include "TableSelectionDialog.h"
 #include "ui_TableSelectionDialog.h"
 
-TableSelectionDialog::TableSelectionDialog(QWidget *parent) :
+TableSelectionDialog::TableSelectionDialog(QWidget* parent) :
     QDialog(parent),
     ui(new Ui::TableSelectionDialog)
 {
@@ -26,7 +26,7 @@ int TableSelectionDialog::currentNameIndex() const
     return ui->tableName->currentIndex();
 }
 
-QString TableSelectionDialog::currentText() const
+QString TableSelectionDialog::currentName() const
 {
     return ui->tableName->currentText();
 }

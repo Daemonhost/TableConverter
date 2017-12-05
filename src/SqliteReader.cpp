@@ -1,17 +1,17 @@
-#include "SqliteLoader.h"
+#include "SqliteReader.h"
 
 #include <QSqlError>
 #include <QSqlField>
 #include <QSqlQuery>
 #include <QSqlRecord>
 
-SqliteLoader::SqliteLoader(const QString& connectionName) :
+SqliteReader::SqliteReader(const QString& connectionName) :
     mError(false),
     mErrorString(),
     mDatabase(new QSqlDatabase(QSqlDatabase::addDatabase("QSQLITE",
                                connectionName))) {}
 
-SqliteLoader::~SqliteLoader()
+SqliteReader::~SqliteReader()
 {
     QString connectionName = mDatabase->connectionName();
     mDatabase->close();
@@ -19,7 +19,7 @@ SqliteLoader::~SqliteLoader()
     QSqlDatabase::removeDatabase(connectionName);
 }
 
-void SqliteLoader::load(const QString& fileName)
+void SqliteReader::open(const QString& fileName)
 {
     mDatabase->setDatabaseName(fileName);
     if(!mDatabase->open())
@@ -30,11 +30,10 @@ void SqliteLoader::load(const QString& fileName)
     }
 }
 
-TableModel* SqliteLoader::tableModel(const QString& tableName, QObject* parent)
+TableModel* SqliteReader::tableModel(const QString& tableName, QObject* parent)
 {
     QSqlQuery query(*mDatabase);
-    query.prepare(QString("SELECT * FROM %1").arg(tableName));
-    if(!query.exec())
+    if(!query.exec(QString("SELECT * FROM %1").arg(tableName)))
     {
         mError = true;
         mErrorString = QString("Не удалось открыть таблицу: ")
@@ -65,17 +64,17 @@ TableModel* SqliteLoader::tableModel(const QString& tableName, QObject* parent)
     }
 }
 
-bool SqliteLoader::error() const
+bool SqliteReader::error() const
 {
     return mError;
 }
 
-const QString& SqliteLoader::errorString() const
+const QString& SqliteReader::errorString() const
 {
     return mErrorString;
 }
 
-const QSqlDatabase& SqliteLoader::database() const
+const QSqlDatabase& SqliteReader::database() const
 {
     return *mDatabase;
 }

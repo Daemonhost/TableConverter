@@ -1,14 +1,14 @@
-#include "CsvLoader.h"
+#include "CsvReader.h"
 
 #include <QString>
 #include <QVariant>
 #include <QVector>
 
-CsvLoader::CsvLoader() :
+CsvReader::CsvReader() :
     mError(false),
     mErrorString() {}
 
-TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
+TableModel* CsvReader::read(const QString& fileName, QObject* parent)
 {
     //Открытие csv и внесение данных в buffer
     QFile csvFile(fileName);
@@ -98,7 +98,7 @@ TableModel* CsvLoader::read(const QString& fileName, QObject* parent)
     return tableModel;
 }
 
-CsvLoader::ReadElementStatus CsvLoader::readElement(QString& result,
+CsvReader::ReadElementStatus CsvReader::readElement(QString& result,
         QFile& csvFile)
 {
     char ch; //Переменная для поочередной записи символов
@@ -168,7 +168,7 @@ CsvLoader::ReadElementStatus CsvLoader::readElement(QString& result,
     }
 }
 
-void CsvLoader::inferAndCastColumnTypes(TableModel* tableModel)
+void CsvReader::inferAndCastColumnTypes(TableModel* tableModel)
 {
     QVector<ElementType> columnTypes(tableModel->columnCount(),
                                      ElementType::Null);
@@ -192,7 +192,7 @@ void CsvLoader::inferAndCastColumnTypes(TableModel* tableModel)
     }
 }
 
-void CsvLoader::updateColumnType(const QString& element,
+void CsvReader::updateColumnType(const QString& element,
                                  ElementType& currentType)
 {
     // Text остается Text'ом, а пустая строка - NULL,
@@ -227,12 +227,12 @@ void CsvLoader::updateColumnType(const QString& element,
     }
 }
 
-bool CsvLoader::error() const
+bool CsvReader::error() const
 {
     return mError;
 }
 
-const QString& CsvLoader::errorString() const
+const QString& CsvReader::errorString() const
 {
     return mErrorString;
 }

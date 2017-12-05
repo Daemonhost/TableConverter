@@ -5,10 +5,13 @@
 #include <QString>
 #include "TableModel.h"
 
-class CsvLoader
+/*!
+ * \brief Класс для чтения таблицы из csv.
+ */
+class CsvReader
 {
 public:
-    CsvLoader();
+    CsvReader();
 
     /*!
      * \brief Считывает CSV файл с данным именем и делает из него

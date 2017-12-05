@@ -9,22 +9,24 @@ CONFIG += c++11
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-SOURCES += src/main.cpp\
-        src/MainWindow.cpp \
-    src/SqliteLoader.cpp \
-    src/TableModel.cpp \
-    src/CsvLoader.cpp \
-    src/TableSelectionDialog.cpp \
-    src/SqliteWriter.cpp
+SOURCES  += src/main.cpp \
+            src/MainWindow.cpp \
+            src/TableModel.cpp \
+            src/TableSelectionDialog.cpp \
+            src/SqliteWriter.cpp \
+            src/SqliteReader.cpp \
+            src/CsvReader.cpp \
+            src/CsvWriter.cpp
 
 INCLUDEPATH += include
 
 HEADERS  += include/MainWindow.h \
-    include/SqliteLoader.h \
-    include/TableModel.h \
-    include/CsvLoader.h \
-    include/TableSelectionDialog.h \
-    include/SqliteWriter.h
+            include/TableModel.h \
+            include/TableSelectionDialog.h \
+            include/SqliteWriter.h \
+            include/SqliteReader.h \
+            include/CsvReader.h \
+            include/CsvWriter.h
 
 FORMS    += MainWindow.ui \
-    TableSelectionDialog.ui
+            TableSelectionDialog.ui
