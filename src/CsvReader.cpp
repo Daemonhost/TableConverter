@@ -172,23 +172,27 @@ void CsvReader::inferAndCastColumnTypes(TableModel* tableModel)
 {
     QVector<ElementType> columnTypes(tableModel->columnCount(),
                                      ElementType::Null);
-    for(int i=0; i < tableModel->rowCount(); ++i)
+    for(int j=0; j < tableModel->columnCount(); ++j)
     {
-        for(int j=0; j < tableModel->columnCount(); ++j)
+        for(int i=0; i < tableModel->rowCount(); ++i)
         {
             updateColumnType(tableModel->data(i,j).toString(), columnTypes[j]);
+            if(columnTypes[j] == ElementType::Text)
+                break;
         }
     }
 
-    for(int i=0; i < tableModel->rowCount(); ++i)
+
+    for(int j=0; j < tableModel->columnCount(); ++j)
     {
-        for(int j=0; j < tableModel->columnCount(); ++j)
-        {
-            if(columnTypes[j] == ElementType::Real)
-                tableModel->setData(i, j, tableModel->data(i,j).toDouble());
-            else if(columnTypes[j] == ElementType::Int)
-                tableModel->setData(i, j, tableModel->data(i,j).toInt());
-        }
+        if(columnTypes[j] == ElementType::Real)
+            for(int i=0; i < tableModel->rowCount(); ++i)
+                if(!tableModel->data(i, j).isNull())
+                    tableModel->setData(i, j, tableModel->data(i,j).toDouble());
+        else if(columnTypes[j] == ElementType::Int)
+            for(int i=0; i < tableModel->rowCount(); ++i)
+                if(!tableModel->data(i, j).isNull())
+                    tableModel->setData(i, j, tableModel->data(i,j).toInt());
     }
 }
 

@@ -34,6 +34,12 @@ public:
     const QString& errorString() const;
 
 private:
+    /*!
+     * \brief Экранирует двойные кавычки и ставит двойные кавычки в начале и
+     *        в конце строки.
+     */
+    QString escapeText(const QString& text);
+
     bool mError;
     QString mErrorString;
 };

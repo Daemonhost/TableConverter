@@ -10,16 +10,6 @@ CsvWriter::CsvWriter() :
 
 void CsvWriter::write(const QString& fileName, const TableModel* model)
 {
-    // Экранирует двойные кавычки и ставит двойные кавычки в начале и в конце
-    // строки
-    auto escapeText = [](const QString& text) -> QString
-    {
-        QString escaped(text);
-        // В CSV двойные кавычки экранируются не \", а ""
-        escaped.replace("\"", "\"\"").prepend("\"").append("\"");
-        return escaped;
-    };
-
     QFile csvFile(fileName);
     if(!csvFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
@@ -70,4 +60,12 @@ bool CsvWriter::error() const
 const QString& CsvWriter::errorString() const
 {
     return mErrorString;
+}
+
+QString CsvWriter::escapeText(const QString& text)
+{
+    QString escaped(text);
+    // В CSV двойные кавычки экранируются не \", а ""
+    escaped.replace("\"", "\"\"").prepend("\"").append("\"");
+    return escaped;
 }
